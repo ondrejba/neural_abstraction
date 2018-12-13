@@ -1,3 +1,5 @@
+import random
+import copy as cp
 import numpy as np
 import matplotlib.pyplot as plt
 import utils
@@ -21,6 +23,33 @@ class Env2D:
 
         self.var = json["var"]
         self.cov = [[self.var, 0], [0, self.var]]
+
+        self.state = None
+        self.reset()
+
+    def reset(self):
+
+        self.state = 1
+
+    def step(self, action):
+
+        next_state = self.transitions[(self.state, action)]
+
+        if (self.state, action) in self.rewards.keys():
+            reward = self.rewards[(self.state, action)]
+            done = True
+        else:
+            reward = 0
+            done = False
+
+        self.state = next_state
+
+        return cp.deepcopy(self.get_observation()), reward, done, next_state
+
+    def get_observation(self):
+
+        mean = random.choice(self.means[self.state])
+        return np.random.multivariate_normal(mean, self.cov, size=1)[0]
 
     def parse_transitions(self, obj):
 
