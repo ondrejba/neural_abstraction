@@ -34,18 +34,18 @@ def main(args):
         net, args.train_steps, args.batch_size, train_exp[0], train_exp[1], train_exp[2], train_exp[3], train_exp[4]
     )
 
-    zs = net.session.run(net.z_t, feed_dict={net.state_pl: train_exp[0]})
+    zs = net.session.run(net.z_t, feed_dict={net.state_pl: test_exp[0]})
 
     # plot losses and latent space
     print("plotting losses")
     viz_utils.plot_losses(losses)
 
     print("plotting latent space")
-    viz_utils.plot_latent_space(zs, train_exp[5], z_size)
+    viz_utils.plot_latent_space(zs, test_exp[5], z_size)
 
     # calculate overlap
     predictions = np.argmax(zs, axis=1)
-    hits, total = agent_utils.overlap(predictions, train_exp[5])
+    hits, total = agent_utils.overlap(predictions, test_exp[5])
 
     print("overlap: {:.2f}% ({:d}/{:d})".format((hits / total) * 100, hits, total))
 
