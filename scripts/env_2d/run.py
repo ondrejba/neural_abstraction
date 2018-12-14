@@ -1,10 +1,12 @@
 import argparse
 import numpy as np
+import matplotlib.pyplot as plt
 import agent_utils
 import constants
 import viz_utils
 from envs.env_2d import Env2D
 from nets.fully_connected import FullyConnected
+plt.style.use("seaborn-colorblind")
 
 
 def main(args):
@@ -14,6 +16,8 @@ def main(args):
     if z_size is None:
         if args.env_name in [constants.ENV_1A_EASY, constants.ENV_4A_EASY]:
             z_size = 2
+        elif args.env_name in [constants.ENV_1A_3_BLOCKS]:
+            z_size = 3
         else:
             z_size = 4
 
@@ -22,6 +26,12 @@ def main(args):
 
     train_exp = agent_utils.collect_exp(env, args.num_train)
     test_exp = agent_utils.collect_exp(env, args.num_test)
+
+    if args.plot_exp:
+        for data, labels in [[train_exp[0], train_exp[5]], [test_exp[0], test_exp[5]]]:
+            plt.scatter(data[:, 0], data[:, 1], c=labels)
+            plt.colorbar()
+            plt.show()
 
     # set up and train a neural network
     net = FullyConnected(
@@ -57,6 +67,7 @@ if __name__ == "__main__":
 
     parser.add_argument("env_name", help=", ".join(constants.ENVS))
 
+    parser.add_argument("--plot-exp", default=False, action="store_true", help="plot collected experience")
     parser.add_argument("--plot-latent-space", default=False, action="store_true", help="only works up to 3D")
 
     parser.add_argument("--z-hiddens", type=int, nargs="+", default=[20, 20], help="hidden layers for the encoder")
