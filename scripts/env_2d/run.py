@@ -40,8 +40,9 @@ def main(args):
     print("plotting losses")
     viz_utils.plot_losses(losses)
 
-    print("plotting latent space")
-    viz_utils.plot_latent_space(zs, test_exp[5], z_size)
+    if args.plot_latent_space:
+        print("plotting latent space")
+        viz_utils.plot_latent_space(zs, test_exp[5], z_size)
 
     # calculate overlap
     predictions = np.argmax(zs, axis=1)
@@ -55,6 +56,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument("env_name", help=", ".join(constants.ENVS))
+
+    parser.add_argument("--plot-latent-space", default=False, action="store_true", help="only works up to 3D")
 
     parser.add_argument("--z-hiddens", type=int, nargs="+", default=[20, 20], help="hidden layers for the encoder")
     parser.add_argument("--t-hiddens", type=int, nargs="+", default=[], help="hidden layers for the transition model")
