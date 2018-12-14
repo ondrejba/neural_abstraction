@@ -45,14 +45,17 @@ def collect_exp(env, num_steps):
 
 def overlap(predictions, states_real):
 
-    num_pred_classes = np.max(predictions) - np.min(predictions) + 1
-    num_gt_classes = np.max(states_real) - np.min(states_real) + 1
+    min_pred_class = np.min(predictions)
+    min_gt_class = np.min(states_real)
+
+    num_pred_classes = np.max(predictions) - min_pred_class + 1
+    num_gt_classes = np.max(states_real) - min_gt_class + 1
 
     # create an assignment matrix for the two partitions
     num_matches = np.zeros((num_gt_classes, num_pred_classes), dtype=np.int32)
 
     for p, r in zip(predictions, states_real):
-        num_matches[r, p] += 1
+        num_matches[r - min_gt_class, p - min_pred_class] += 1
 
     # match ground-truth partitions to predicted partitions
     matches = {}

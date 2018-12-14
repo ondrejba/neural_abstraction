@@ -1,6 +1,8 @@
 import argparse
+import numpy as np
 import agent_utils
 import constants
+import viz_utils
 from envs.env_2d import Env2D
 from nets.fully_connected import FullyConnected
 
@@ -11,9 +13,9 @@ def main(args):
     z_size = args.z_size
     if z_size is None:
         if args.env_name in [constants.ENV_1A_EASY, constants.ENV_4A_EASY]:
-            z_size = 3
+            z_size = 2
         else:
-            z_size = 5
+            z_size = 4
 
     # set up an environment and collect experience
     env = Env2D(constants.env_to_path(args.env_name))
@@ -31,6 +33,21 @@ def main(args):
     losses = agent_utils.train(
         net, args.train_steps, args.batch_size, train_exp[0], train_exp[1], train_exp[2], train_exp[3], train_exp[4]
     )
+
+    zs = net.session.run(net.z_t, feed_dict={net.state_pl: train_exp[0]})
+
+    # plot losses and latent space
+    print("plotting losses")
+    viz_utils.plot_losses(losses)
+
+    print("plotting latent space")
+    viz_utils.plot_latent_space(zs, train_exp[5], z_size)
+
+    # calculate overlap
+    predictions = np.argmax(zs, axis=1)
+    hits, total = agent_utils.overlap(predictions, train_exp[5])
+
+    print("overlap: {:.2f}% ({:d}/{:d})".format((hits / total) * 100, hits, total))
 
 
 if __name__ == "__main__":
