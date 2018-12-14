@@ -9,17 +9,17 @@ from nets.fully_connected import FullyConnected
 
 os.environ["CUDA_VISIBLE_DEVICES"] = ""
 
-ENV_NAME = constants.ENV_1A_EASY
+ENV_NAME = constants.ENV_1A_3_BLOCKS_EASY
 NUM_TRAIN = 1000
 NUM_TEST = 1000
-Z_HIDDENS = [20, 20]
+Z_HIDDENS = [16, 32, 64]
 T_HIDDENS = []
 R_HIDDENS = []
 A_HIDDENS = None
-LEARNING_RATE = 0.01
-Z_SIZE = 2
+LEARNING_RATE = 0.005
+Z_SIZE = 3
 BATCH_SIZE = 32
-TRAIN_STEPS = 250
+TRAIN_STEPS = 500
 
 NORMS = [0.5]
 LAMBDAS = [0.0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.2, 0.3, 0.4, 0.5]
