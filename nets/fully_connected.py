@@ -92,7 +92,7 @@ class FullyConnected(Model):
         self.r_bar_t = tf.layers.dense(x, 1, activation=None)[:, 0]
 
         # loss
-        norm_t = tf.pow(tf.reduce_sum(tf.pow(tf.abs(self.z_t), self.norm), axis=1), 1 / self.norm)
+        norm_t = tf.reduce_sum(tf.pow(tf.abs(self.z_t), self.norm), axis=1)
         self.norm_loss_t = tf.reduce_mean(norm_t)
 
         self.transition_loss_t = (1.0 - self.done_pl) * tf.reduce_mean((self.z_bar_t - self.target_pl) ** 2, axis=1)
