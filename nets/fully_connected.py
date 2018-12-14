@@ -1,7 +1,8 @@
+from nets.abstract import Model
 import tensorflow as tf
 
 
-class FullyConnected:
+class FullyConnected(Model):
 
     MOMENTUM = 0.9
 
@@ -31,8 +32,8 @@ class FullyConnected:
         self.r_bar_t = None
 
         self.norm_loss_t = None
-        self.loss_transition_t = None
-        self.loss_reward_t = None
+        self.transition_loss_t = None
+        self.reward_loss_t = None
         self.loss_t = None
         self.train_step = None
 
@@ -94,10 +95,10 @@ class FullyConnected:
         norm_t = tf.pow(tf.reduce_sum(tf.pow(tf.abs(self.z_t), self.norm), axis=1), 1 / self.norm)
         self.norm_loss_t = tf.reduce_mean(norm_t)
 
-        self.loss_transition_t = (1.0 - self.done_pl) * tf.reduce_mean((self.z_bar_t - self.target_pl) ** 2, axis=1)
-        self.loss_reward_t = (self.r_bar_t - self.reward_pl) ** 2
+        self.transition_loss_t = (1.0 - self.done_pl) * tf.reduce_mean((self.z_bar_t - self.target_pl) ** 2, axis=1)
+        self.reward_loss_t = (self.r_bar_t - self.reward_pl) ** 2
 
-        self.loss_t = self.loss_transition_t + self.loss_reward_t
+        self.loss_t = self.transition_loss_t + self.reward_loss_t
         self.loss_t = tf.reduce_mean(self.loss_t) + self.lambda_1 * self.norm_loss_t
 
         # training
