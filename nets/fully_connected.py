@@ -7,7 +7,7 @@ class FullyConnected(Model):
     MOMENTUM = 0.9
 
     def __init__(self, state_size, num_actions, z_hiddens, t_hiddens, r_hiddens, a_hiddens=None, learning_rate=0.01,
-                 z_size=3, norm=0.5, lambda_1=0.5):
+                 z_size=3, norm=0.5, lambda_1=0.5, entropy=False):
 
         self.state_size = state_size
         self.num_actions = num_actions
@@ -20,6 +20,7 @@ class FullyConnected(Model):
         self.z_size = z_size
         self.norm = norm
         self.lambda_1 = lambda_1
+        self.entropy = entropy
 
         self.state_pl = None
         self.reward_pl = None
@@ -92,7 +93,10 @@ class FullyConnected(Model):
         self.r_bar_t = tf.layers.dense(x, 1, activation=None)[:, 0]
 
         # loss
-        norm_t = tf.reduce_sum(tf.pow(tf.abs(self.z_t), self.norm), axis=1)
+        if self.entropy:
+            norm_t = - tf.reduce_sum(self.z_t * tf.log(self.z_t), axis=1)
+        else:
+            norm_t = tf.reduce_sum(tf.pow(tf.abs(self.z_t), self.norm), axis=1)
         self.norm_loss_t = tf.reduce_mean(norm_t)
 
         self.transition_loss_t = (1.0 - self.done_pl) * tf.reduce_mean((self.z_bar_t - self.target_pl) ** 2, axis=1)
