@@ -45,6 +45,13 @@ def main(args):
         net, args.train_steps, args.batch_size, train_exp[0], train_exp[1], train_exp[2], train_exp[3], train_exp[4]
     )
 
+    if args.step_2_train_steps is not None:
+        net.update_lambda_1(args.step_2_lambda_1)
+        losses2 = agent_utils.train(
+            net, args.train_steps, args.batch_size, train_exp[0], train_exp[1], train_exp[2], train_exp[3], train_exp[4]
+        )
+        losses = {key: np.concatenate([losses[key], losses2[key]], axis=0) for key in losses.keys()}
+
     zs = net.session.run(net.z_t, feed_dict={net.state_pl: test_exp[0]})
 
     # plot losses and latent space
@@ -89,6 +96,9 @@ if __name__ == "__main__":
 
     parser.add_argument("--num-train", default=1000, help="number of samples for training")
     parser.add_argument("--num-test", default=1000, help="number of samples for testing")
+
+    parser.add_argument("--step-2-train-steps", type=int, default=None)
+    parser.add_argument("--step-2-lambda-1", type=float, default=0.0)
 
     parsed = parser.parse_args()
     main(parsed)

@@ -27,6 +27,7 @@ class FullyConnected(Model):
         self.done_pl = None
         self.target_pl = None
         self.action_pl = None
+        self.lambda_1_v = None
 
         self.z_t = None
         self.z_bar_t = None
@@ -52,6 +53,8 @@ class FullyConnected(Model):
 
         if self.num_actions > 1:
             self.action_pl = tf.placeholder(tf.int32, shape=(None,), name="action_pl")
+
+        self.lambda_1_v = tf.Variable(initial_value=self.lambda_1, trainable=False, name="lambda_1")
 
         # encoder
         x = self.state_pl
@@ -103,7 +106,7 @@ class FullyConnected(Model):
         self.reward_loss_t = (self.r_bar_t - self.reward_pl) ** 2
 
         self.loss_t = self.transition_loss_t + self.reward_loss_t
-        self.loss_t = tf.reduce_mean(self.loss_t) + self.lambda_1 * self.norm_loss_t
+        self.loss_t = tf.reduce_mean(self.loss_t) + self.lambda_1_v * self.norm_loss_t
 
         # training
         self.train_step = tf.train.MomentumOptimizer(self.learning_rate, self.MOMENTUM).minimize(self.loss_t)
@@ -118,3 +121,8 @@ class FullyConnected(Model):
         if self.session is not None:
             self.session.close()
             self.session = None
+
+    def update_lambda_1(self, value):
+
+        self.lambda_1 = value
+        self.session.run(tf.assign(self.lambda_1_v, value))
