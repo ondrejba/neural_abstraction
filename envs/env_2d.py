@@ -13,6 +13,7 @@ class Env2D:
         json = utils.load_json(json_path)
 
         self.transitions = None
+        self.actions = None
         self.parse_transitions(json["transitions"])
 
         self.rewards = None
@@ -44,7 +45,7 @@ class Env2D:
 
         self.state = next_state
 
-        return cp.deepcopy(self.get_observation()), reward, done, next_state
+        return cp.deepcopy(self.get_observation()), reward, done
 
     def get_observation(self):
 
@@ -54,6 +55,7 @@ class Env2D:
     def parse_transitions(self, obj):
 
         self.transitions = {}
+        self.actions = set()
 
         for key, value in obj.items():
 
@@ -62,6 +64,9 @@ class Env2D:
             next_state = int(value)
 
             self.transitions[(state, action)] = next_state
+            self.actions.add(action)
+
+        self.actions = list(self.actions)
 
     def parse_rewards(self, obj):
 

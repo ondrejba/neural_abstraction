@@ -1,4 +1,5 @@
 import collections
+import random
 import copy as cp
 import numpy as np
 
@@ -6,6 +7,7 @@ import numpy as np
 def collect_exp(env, num_steps):
 
     states = []
+    actions = []
     rewards = []
     next_states = []
     dones = []
@@ -14,11 +16,13 @@ def collect_exp(env, num_steps):
 
     for i in range(num_steps):
         state = env.get_observation()
+        action = random.choice(env.actions)
         real_state = cp.deepcopy(env.state)
-        next_state, reward, done = env.step()
+        next_state, reward, done = env.step(action)
         real_next_state = cp.deepcopy(env.state)
 
         states.append(state)
+        actions.append(action)
         states_real.append(real_state)
         rewards.append(reward)
         next_states.append(next_state)
@@ -29,13 +33,14 @@ def collect_exp(env, num_steps):
             env.reset()
 
     states = np.array(states, dtype=np.float32)
+    actions = np.array(actions, dtype=np.int32)
     rewards = np.array(rewards, dtype=np.float32)
     next_states = np.array(next_states, dtype=np.float32)
     dones = np.array(dones, dtype=np.float32)
     states_real = np.array(states_real, dtype=np.int32)
     next_states_real = np.array(next_states_real, dtype=np.int32)
 
-    return states, rewards, next_states, dones, states_real, next_states_real
+    return states, actions, rewards, next_states, dones, states_real, next_states_real
 
 
 def overlap(predictions, states_real):
@@ -65,7 +70,7 @@ def overlap(predictions, states_real):
     return hits, len(predictions)
 
 
-def train(model, steps, batch_size, states, actions, rewards, dones, next_states):
+def train(model, steps, batch_size, states, actions, rewards, next_states, dones):
 
     epoch_size = len(states) // batch_size
 
@@ -88,7 +93,7 @@ def train(model, steps, batch_size, states, actions, rewards, dones, next_states
             model.target_pl: z
         }
 
-        if actions is not None:
+        if actions is not None and model.action_pl is not None:
             feed_dict[model.action_pl] = actions[batch_slice]
 
         _, total_loss, transition_loss, reward_loss, norm_loss = model.session.run(
