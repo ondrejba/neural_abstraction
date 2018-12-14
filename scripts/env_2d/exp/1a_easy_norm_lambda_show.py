@@ -14,7 +14,7 @@ LOAD_PATH = os.path.join(LOAD_DIR, LOAD_FILE)
 
 NORMS = [0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
 LAMBDAS = [0.5, 0.1, 0.05, 0.01, 0.005, 0.001]
-RUNS = 100
+RUNS = 20
 
 results = utils.read_pickle(LOAD_PATH)
 results_array = np.zeros((len(NORMS), len(LAMBDAS)))
