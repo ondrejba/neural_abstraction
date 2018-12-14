@@ -16,7 +16,7 @@ def main(args):
     if z_size is None:
         if args.env_name in [constants.ENV_1A_EASY, constants.ENV_4A_EASY]:
             z_size = 2
-        elif args.env_name in [constants.ENV_1A_3_BLOCKS]:
+        elif args.env_name in [constants.ENV_1A_3_BLOCKS, constants.ENV_1A_3_BLOCKS_EASY]:
             z_size = 3
         else:
             z_size = 4
