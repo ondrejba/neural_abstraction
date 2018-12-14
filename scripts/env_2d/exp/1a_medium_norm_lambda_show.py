@@ -7,7 +7,7 @@ plt.style.use("seaborn-colorblind")
 
 
 LOAD_DIR = "results/env_2d"
-LOAD_FILE = "1a_easy_norm_lambda.pickle"
+LOAD_FILE = "1a_medium_norm_lambda.pickle"
 LOAD_PATH = os.path.join(LOAD_DIR, LOAD_FILE)
 
 NORMS = [0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
