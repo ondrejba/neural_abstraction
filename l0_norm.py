@@ -1,3 +1,9 @@
+"""
+Source: https://github.com/AMLab-Amsterdam/L0_regularization
+Paper: https://arxiv.org/abs/1712.01312
+I rewrote the code from pytorch to tensorflow.
+"""
+
 import os
 import numpy as np
 import tensorflow as tf
@@ -17,7 +23,7 @@ def l0_norm(embedding, is_training):
 
     alpha_shape = [embedding.shape[1].value]
     alpha_loga = tf.get_variable(
-        "alpha", shape=None, dtype=tf.float32,
+        "alpha_loga", shape=None, dtype=tf.float32,
         initializer=tf.random.normal(
             alpha_shape, mean=(np.log(1 - DROPRATE_INIT) - np.log(DROPRATE_INIT)), stddev=1e-2
         )
@@ -76,4 +82,4 @@ def cdf_qz(x, alpha_loga):
 
 def reg(alpha_loga):
 
-    return tf.reduce_sum(- (1 - cdf_qz(0, alpha_loga)))
+    return tf.reduce_sum(- (1 - cdf_qz(0, alpha_loga)), axis=1)

@@ -11,6 +11,7 @@ class Model(abc.ABC):
     done_pl = NotImplemented
     target_pl = NotImplemented
     action_pl = NotImplemented
+    is_training_pl = NotImplemented
 
     z_t = NotImplemented
     z_bar_t = NotImplemented

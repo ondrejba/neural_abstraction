@@ -1,5 +1,6 @@
-from nets.abstract import Model
 import tensorflow as tf
+from nets.abstract import Model
+import l0_norm
 
 
 class FullyConnected(Model):
@@ -7,7 +8,7 @@ class FullyConnected(Model):
     MOMENTUM = 0.9
 
     def __init__(self, state_size, num_actions, z_hiddens, t_hiddens, r_hiddens, a_hiddens=None, learning_rate=0.01,
-                 z_size=3, norm=0.5, lambda_1=0.5, entropy=False):
+                 z_size=3, l_norm=None, l0_norm=False, lambda_1=0.5, entropy=False):
 
         self.state_size = state_size
         self.num_actions = num_actions
@@ -18,7 +19,8 @@ class FullyConnected(Model):
 
         self.learning_rate = learning_rate
         self.z_size = z_size
-        self.norm = norm
+        self.l_norm = l_norm
+        self.l0_norm = l0_norm
         self.lambda_1 = lambda_1
         self.entropy = entropy
 
@@ -50,6 +52,7 @@ class FullyConnected(Model):
         self.reward_pl = tf.placeholder(tf.float32, shape=(None,), name="reward_pl")
         self.done_pl = tf.placeholder(tf.float32, shape=(None,), name="done_pl")
         self.target_pl = tf.placeholder(tf.float32, shape=(None, self.z_size), name="target_pl")
+        self.is_training_pl = tf.placeholder(tf.bool, shape=[], name="is_training_pl")
 
         if self.num_actions > 1:
             self.action_pl = tf.placeholder(tf.int32, shape=(None,), name="action_pl")
@@ -65,6 +68,11 @@ class FullyConnected(Model):
         x = tf.layers.dense(x, self.z_size, activation=tf.nn.softmax)
 
         self.z_t = x
+
+        # L0 norm
+        norm_t = tf.constant(0.0)
+        if self.l0_norm:
+            self.z_t, l0_reg = l0_norm.l0_norm(self.z_t, self.is_training_pl)
 
         # action encoder
         if self.action_pl is not None:
@@ -98,8 +106,9 @@ class FullyConnected(Model):
         # loss
         if self.entropy:
             norm_t = - tf.reduce_sum(self.z_t * tf.log(self.z_t), axis=1)
-        else:
-            norm_t = tf.reduce_sum(tf.pow(tf.abs(self.z_t), self.norm), axis=1)
+        elif self.l_norm is not None:
+            norm_t = tf.reduce_sum(tf.pow(tf.abs(self.z_t), self.l_norm), axis=1)
+
         self.norm_loss_t = tf.reduce_mean(norm_t)
 
         self.transition_loss_t = (1.0 - self.done_pl) * tf.reduce_mean((self.z_bar_t - self.target_pl) ** 2, axis=1)

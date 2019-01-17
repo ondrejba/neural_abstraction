@@ -86,14 +86,16 @@ def train(model, steps, batch_size, states, actions, rewards, next_states, dones
         batch_slice = np.index_exp[epoch_idx * batch_size: (epoch_idx + 1) * batch_size]
 
         z = model.session.run(model.z_t, feed_dict={
-            model.state_pl: next_states[batch_slice]
+            model.state_pl: next_states[batch_slice],
+            model.is_training_pl: False
         })
 
         feed_dict = {
             model.state_pl: states[batch_slice],
             model.reward_pl: rewards[batch_slice],
             model.done_pl: dones[batch_slice],
-            model.target_pl: z
+            model.target_pl: z,
+            model.is_training_pl: True
         }
 
         if actions is not None and model.action_pl is not None:

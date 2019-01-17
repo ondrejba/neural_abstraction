@@ -36,8 +36,8 @@ def main(args):
     # set up and train a neural network
     net = FullyConnected(
         2, len(env.actions), args.z_hiddens, args.t_hiddens, args.r_hiddens, a_hiddens=args.a_hiddens,
-        learning_rate=args.learning_rate, z_size=z_size, norm=args.norm, lambda_1=args.lambda_1,
-        entropy=args.entropy
+        learning_rate=args.learning_rate, z_size=z_size, l_norm=args.l_norm, l0_norm=args.l0_norm,
+        lambda_1=args.lambda_1, entropy=args.entropy
     )
     net.state_session()
 
@@ -85,9 +85,11 @@ if __name__ == "__main__":
 
     parser.add_argument("--learning-rate", type=float, default=0.01)
     parser.add_argument("--z-size", type=int, default=None, help="size of the latent space; leave it blank")
-    parser.add_argument("--norm", type=float, default=0.5,
+    parser.add_argument("--l-norm", type=float, default=None,
                         help="L-something norm for the bottleneck (forces the latent vector to approach "
                              "a one-hot vector)")
+    parser.add_argument("--l0-norm", default=False, action="store_true",
+                        help="use the L0 norm")
     parser.add_argument("--lambda-1", type=float, default=0.5, help="strength of the L-something norm loss")
     parser.add_argument("--entropy", default=False, action="store_true", help="minimize entropy of z")
 
