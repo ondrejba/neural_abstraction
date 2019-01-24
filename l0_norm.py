@@ -82,4 +82,4 @@ def cdf_qz(x, alpha_loga):
 
 def reg(alpha_loga):
 
-    return tf.reduce_sum(- (1 - cdf_qz(0, alpha_loga)), axis=1)
+    return tf.reduce_sum(- (1 - cdf_qz(0, alpha_loga)))

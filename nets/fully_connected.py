@@ -8,7 +8,7 @@ class FullyConnected(Model):
     MOMENTUM = 0.9
 
     def __init__(self, state_size, num_actions, z_hiddens, t_hiddens, r_hiddens, a_hiddens=None, learning_rate=0.01,
-                 z_size=3, l_norm=None, l0_norm=False, lambda_1=0.5, entropy=False):
+                 z_size=3, l_norm=None, l0_norm=False, lambda_1=1.0, entropy=False, sparse=False, sparse_target=0.05):
 
         self.state_size = state_size
         self.num_actions = num_actions
@@ -23,6 +23,8 @@ class FullyConnected(Model):
         self.l0_norm = l0_norm
         self.lambda_1 = lambda_1
         self.entropy = entropy
+        self.sparse = sparse
+        self.sparse_target = sparse_target
 
         self.state_pl = None
         self.reward_pl = None
@@ -65,12 +67,20 @@ class FullyConnected(Model):
         for i, hidden in enumerate(self.z_hiddens):
             x = tf.layers.dense(x, hidden, activation=tf.nn.relu)
 
-        x = tf.layers.dense(x, self.z_size, activation=tf.nn.softmax)
+        x = tf.layers.dense(x, self.z_size, activation=tf.nn.sigmoid)
 
         self.z_t = x
 
-        # L0 norm
         norm_t = tf.constant(0.0)
+
+        # sparsity penalty
+        if self.sparse:
+            avg_activation = tf.reduce_mean(self.z_t, axis=0)
+            norm_t = self.sparse_target * tf.log(self.sparse_target / avg_activation) + \
+                (1 - self.sparse_target) * tf.log((1 - self.sparse_target) / (1 - avg_activation))
+            norm_t = tf.reduce_sum(norm_t)
+
+        # L0 norm
         if self.l0_norm:
             self.z_t, l0_reg = l0_norm.l0_norm(self.z_t, self.is_training_pl)
 

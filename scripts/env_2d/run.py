@@ -37,7 +37,7 @@ def main(args):
     net = FullyConnected(
         2, len(env.actions), args.z_hiddens, args.t_hiddens, args.r_hiddens, a_hiddens=args.a_hiddens,
         learning_rate=args.learning_rate, z_size=z_size, l_norm=args.l_norm, l0_norm=args.l0_norm,
-        lambda_1=args.lambda_1, entropy=args.entropy
+        lambda_1=args.lambda_1, entropy=args.entropy, sparse=args.sparse, sparse_target=args.sparse_target
     )
     net.state_session()
 
@@ -52,7 +52,10 @@ def main(args):
         )
         losses = {key: np.concatenate([losses[key], losses2[key]], axis=0) for key in losses.keys()}
 
-    zs = net.session.run(net.z_t, feed_dict={net.state_pl: test_exp[0]})
+    zs = net.session.run(net.z_t, feed_dict={
+        net.state_pl: test_exp[0],
+        net.is_training_pl: False
+    })
 
     # plot losses and latent space
     print("plotting losses")
@@ -93,11 +96,14 @@ if __name__ == "__main__":
     parser.add_argument("--lambda-1", type=float, default=0.5, help="strength of the L-something norm loss")
     parser.add_argument("--entropy", default=False, action="store_true", help="minimize entropy of z")
 
+    parser.add_argument("--sparse", default=False, action="store_true")
+    parser.add_argument("--sparse-target", type=float, default=0.05)
+
     parser.add_argument("--train-steps", type=int, default=250)
     parser.add_argument("--batch-size", type=int, default=32)
 
-    parser.add_argument("--num-train", default=1000, help="number of samples for training")
-    parser.add_argument("--num-test", default=1000, help="number of samples for testing")
+    parser.add_argument("--num-train", type=int, default=1000, help="number of samples for training")
+    parser.add_argument("--num-test", type=int, default=1000, help="number of samples for testing")
 
     parser.add_argument("--step-2-train-steps", type=int, default=None)
     parser.add_argument("--step-2-lambda-1", type=float, default=0.0)
