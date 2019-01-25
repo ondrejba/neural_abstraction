@@ -39,7 +39,7 @@ def plot_latent_space(zs, real, z_size, save_path=None):
 
     if save_path is not None:
         plt.savefig(save_path)
-        plt.clf()
+        plt.close()
     else:
         plt.show()
 

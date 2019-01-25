@@ -8,8 +8,8 @@ class FullyConnected(Model):
     MOMENTUM = 0.9
 
     def __init__(self, state_size, num_actions, z_hiddens, t_hiddens, r_hiddens, a_hiddens=None, learning_rate=0.01,
-                 z_size=3, l_norm=None, l0_norm=False, lambda_1=1.0, entropy=False, sparse=False, sparse_target=0.05,
-                 target_encoder=True, target_encoder_update_freq=50):
+                 z_size=3, l_norm=None, l0_norm=False, lambda_1=1.0, lambda_2=1.0, entropy=False, sparse=False,
+                 sparse_target=0.05, target_encoder=True, target_encoder_update_freq=50):
 
         self.state_size = state_size
         self.num_actions = num_actions
@@ -23,6 +23,7 @@ class FullyConnected(Model):
         self.l_norm = l_norm
         self.l0_norm = l0_norm
         self.lambda_1 = lambda_1
+        self.lambda_2 = lambda_2
         self.entropy = entropy
         self.sparse = sparse
         self.sparse_target = sparse_target
@@ -149,10 +150,10 @@ class FullyConnected(Model):
 
         self.norm_loss_t = tf.reduce_mean(norm_t)
 
-        self.transition_loss_t = (1.0 - self.done_pl) * tf.reduce_mean((self.z_bar_t - self.target_pl) ** 2, axis=1)
+        self.transition_loss_t = (1.0 - self.done_pl) * tf.reduce_sum((self.z_bar_t - self.target_pl) ** 2, axis=1)
         self.reward_loss_t = (self.r_bar_t - self.reward_pl) ** 2
 
-        self.loss_t = self.transition_loss_t + self.reward_loss_t
+        self.loss_t = self.lambda_2 * self.transition_loss_t + self.reward_loss_t
         self.loss_t = tf.reduce_mean(self.loss_t) + self.lambda_1_v * self.norm_loss_t
 
         # training
