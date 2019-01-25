@@ -8,7 +8,8 @@ class FullyConnected(Model):
     MOMENTUM = 0.9
 
     def __init__(self, state_size, num_actions, z_hiddens, t_hiddens, r_hiddens, a_hiddens=None, learning_rate=0.01,
-                 z_size=3, l_norm=None, l0_norm=False, lambda_1=1.0, entropy=False, sparse=False, sparse_target=0.05):
+                 z_size=3, l_norm=None, l0_norm=False, lambda_1=1.0, entropy=False, sparse=False, sparse_target=0.05,
+                 target_encoder=True, target_encoder_update_freq=50):
 
         self.state_size = state_size
         self.num_actions = num_actions
@@ -25,6 +26,8 @@ class FullyConnected(Model):
         self.entropy = entropy
         self.sparse = sparse
         self.sparse_target = sparse_target
+        self.target_encoder = target_encoder
+        self.target_encoder_update_freq = target_encoder_update_freq
 
         self.state_pl = None
         self.reward_pl = None
@@ -34,6 +37,7 @@ class FullyConnected(Model):
         self.lambda_1_v = None
 
         self.z_t = None
+        self.target_z_t = None
         self.z_bar_t = None
         self.r_bar_t = None
 
@@ -42,6 +46,7 @@ class FullyConnected(Model):
         self.reward_loss_t = None
         self.loss_t = None
         self.train_step = None
+        self.update_op = None
 
         self.build()
 
@@ -62,14 +67,37 @@ class FullyConnected(Model):
         self.lambda_1_v = tf.Variable(initial_value=self.lambda_1, trainable=False, name="lambda_1")
 
         # encoder
-        x = self.state_pl
+        with tf.variable_scope("encoder"):
 
-        for i, hidden in enumerate(self.z_hiddens):
-            x = tf.layers.dense(x, hidden, activation=tf.nn.relu)
+            x = self.state_pl
 
-        x = tf.layers.dense(x, self.z_size, activation=tf.nn.sigmoid)
+            for i, hidden in enumerate(self.z_hiddens):
+                x = tf.layers.dense(x, hidden, activation=tf.nn.relu)
 
-        self.z_t = x
+            self.z_t = tf.layers.dense(x, self.z_size, activation=tf.nn.softmax)
+
+        if self.target_encoder:
+
+            with tf.variable_scope("target_encoder"):
+
+                x = self.state_pl
+
+                for i, hidden in enumerate(self.z_hiddens):
+                    x = tf.layers.dense(x, hidden, activation=tf.nn.relu)
+
+                self.target_z_t = tf.layers.dense(x, self.z_size, activation=tf.nn.softmax)
+
+            encoder_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope="encoder")
+            target_encoder_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope="target_encoder")
+
+            update_ops = []
+            for source, target in zip(encoder_vars, target_encoder_vars):
+                update_ops.append(tf.assign(target, source))
+            self.update_op = tf.group(*update_ops)
+
+        else:
+
+            self.target_z_t = self.z_t
 
         norm_t = tf.constant(0.0)
 

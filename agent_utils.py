@@ -1,7 +1,9 @@
 import collections
+import os
 import random
 import copy as cp
 import numpy as np
+import viz_utils
 
 
 def collect_exp(env, num_steps):
@@ -73,7 +75,12 @@ def overlap(predictions, states_real):
     return hits, len(predictions)
 
 
-def train(model, steps, batch_size, states, actions, rewards, next_states, dones):
+def train(model, steps, batch_size, states, actions, rewards, next_states, dones, save_latent_space_every_step=False,
+          test_exp=None):
+
+    assert test_exp is not None or not save_latent_space_every_step
+
+    run_folder = viz_utils.get_run_folder()
 
     epoch_size = len(states) // batch_size
 
@@ -85,7 +92,7 @@ def train(model, steps, batch_size, states, actions, rewards, next_states, dones
         epoch_idx = i % epoch_size
         batch_slice = np.index_exp[epoch_idx * batch_size: (epoch_idx + 1) * batch_size]
 
-        z = model.session.run(model.z_t, feed_dict={
+        z = model.session.run(model.target_z_t, feed_dict={
             model.state_pl: next_states[batch_slice],
             model.is_training_pl: False
         })
@@ -110,6 +117,17 @@ def train(model, steps, batch_size, states, actions, rewards, next_states, dones
         epoch_losses["transition"].append(transition_loss)
         epoch_losses["reward"].append(reward_loss)
         epoch_losses["norm"].append(norm_loss)
+
+        if model.target_encoder and i % model.target_encoder_update_freq == 0:
+            model.session.run(model.update_op)
+
+        if save_latent_space_every_step:
+            zs = model.session.run(model.z_t, feed_dict={
+                model.state_pl: test_exp[0],
+                model.is_training_pl: False
+            })
+            viz_utils.plot_latent_space(zs, test_exp[5], zs.shape[1],
+                                        os.path.join(run_folder, "step_{:d}.png".format(i + 1)))
 
         if epoch_idx == 0 and i > 0:
 

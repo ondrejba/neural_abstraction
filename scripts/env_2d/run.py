@@ -42,7 +42,8 @@ def main(args):
     net.state_session()
 
     losses = agent_utils.train(
-        net, args.train_steps, args.batch_size, train_exp[0], train_exp[1], train_exp[2], train_exp[3], train_exp[4]
+        net, args.train_steps, args.batch_size, train_exp[0], train_exp[1], train_exp[2], train_exp[3], train_exp[4],
+        save_latent_space_every_step=args.plot_latent_space_every_step, test_exp=test_exp
     )
 
     if args.step_2_train_steps is not None:
@@ -80,6 +81,7 @@ if __name__ == "__main__":
 
     parser.add_argument("--plot-exp", default=False, action="store_true", help="plot collected experience")
     parser.add_argument("--plot-latent-space", default=False, action="store_true", help="only works up to 3D")
+    parser.add_argument("--plot-latent-space-every-step", default=False, action="store_true")
 
     parser.add_argument("--z-hiddens", type=int, nargs="+", default=[20, 20], help="hidden layers for the encoder")
     parser.add_argument("--t-hiddens", type=int, nargs="+", default=[], help="hidden layers for the transition model")

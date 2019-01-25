@@ -1,6 +1,9 @@
+import os
+import datetime
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D         # don't delete this, used for 3d projection
+from mpl_toolkits.mplot3d import Axes3D         # don't delete this, necessary for 3d projection
+import paths
 plt.style.use("seaborn-colorblind")
 
 
@@ -18,7 +21,7 @@ def plot_losses(losses):
     plt.show()
 
 
-def plot_latent_space(zs, real, z_size):
+def plot_latent_space(zs, real, z_size, save_path=None):
 
     if z_size == 1:
         plt.scatter(zs[:, 0], np.zeros_like(zs[:, 0]), c=real)
@@ -34,4 +37,19 @@ def plot_latent_space(zs, real, z_size):
     else:
         raise ValueError("Cannot plot 4D or higher.")
 
-    plt.show()
+    if save_path is not None:
+        plt.savefig(save_path)
+        plt.clf()
+    else:
+        plt.show()
+
+
+def get_run_folder():
+
+    folder_name = "run_{:s}".format(datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S"))
+    path = os.path.join(paths.RESULTS, folder_name)
+
+    if not os.path.isdir(path):
+        os.makedirs(path)
+
+    return path
