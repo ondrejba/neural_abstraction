@@ -39,7 +39,7 @@ def main(args):
         learning_rate=args.learning_rate, z_size=z_size, l_norm=args.l_norm, l0_norm=args.l0_norm,
         lambda_1=args.lambda_1, lambda_2=args.lambda_2, entropy=args.entropy, sparse=args.sparse,
         sparse_target=args.sparse_target, target_encoder=not args.disable_target_network,
-        target_encoder_update_freq=args.target_network_update_freq
+        target_encoder_update_freq=args.target_network_update_freq, log_sparse=args.log_sparse
     )
     net.state_session()
 
@@ -103,6 +103,7 @@ if __name__ == "__main__":
 
     parser.add_argument("--sparse", default=False, action="store_true")
     parser.add_argument("--sparse-target", type=float, default=0.05)
+    parser.add_argument("--log-sparse", default=False, action="store_true")
 
     parser.add_argument("--disable-target-network", default=False, action="store_true")
     parser.add_argument("--target-network-update-freq", type=int, default=50)

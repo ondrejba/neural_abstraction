@@ -9,7 +9,8 @@ class FullyConnected(Model):
 
     def __init__(self, state_size, num_actions, z_hiddens, t_hiddens, r_hiddens, a_hiddens=None, learning_rate=0.01,
                  z_size=3, l_norm=None, l0_norm=False, lambda_1=1.0, lambda_2=1.0, entropy=False, sparse=False,
-                 sparse_target=0.05, target_encoder=True, target_encoder_update_freq=50):
+                 sparse_target=0.05, log_sparse=False, target_encoder=True, target_encoder_update_freq=50,
+                 z_activation=tf.nn.softmax):
 
         self.state_size = state_size
         self.num_actions = num_actions
@@ -27,8 +28,10 @@ class FullyConnected(Model):
         self.entropy = entropy
         self.sparse = sparse
         self.sparse_target = sparse_target
+        self.log_sparse = log_sparse
         self.target_encoder = target_encoder
         self.target_encoder_update_freq = target_encoder_update_freq
+        self.z_activation = z_activation
 
         self.state_pl = None
         self.reward_pl = None
@@ -75,7 +78,7 @@ class FullyConnected(Model):
             for i, hidden in enumerate(self.z_hiddens):
                 x = tf.layers.dense(x, hidden, activation=tf.nn.relu)
 
-            self.z_t = tf.layers.dense(x, self.z_size, activation=tf.nn.softmax)
+            self.z_t = tf.layers.dense(x, self.z_size, activation=self.z_activation)
 
         if self.target_encoder:
 
@@ -109,6 +112,10 @@ class FullyConnected(Model):
                 (1 - self.sparse_target) * tf.log((1 - self.sparse_target) / (1 - avg_activation))
             norm_t = tf.reduce_sum(norm_t)
 
+        # log sparsity
+        if self.log_sparse:
+            norm_t = tf.reduce_sum(tf.log(1 + tf.square(self.z_t)), axis=1)
+
         # L0 norm
         if self.l0_norm:
             self.z_t, l0_reg = l0_norm.l0_norm(self.z_t, self.is_training_pl)
@@ -132,7 +139,7 @@ class FullyConnected(Model):
         for hidden in self.t_hiddens:
             x = tf.layers.dense(x, hidden, activation=tf.nn.relu)
 
-        self.z_bar_t = tf.layers.dense(x, self.z_size, activation=None)
+        self.z_bar_t = tf.layers.dense(x, self.z_size, activation=self.z_activation)
 
         # reward function
         x = z_plus_a_t
@@ -140,7 +147,7 @@ class FullyConnected(Model):
         for hidden in self.r_hiddens:
             x = tf.layers.dense(x, hidden, activation=tf.nn.relu)
 
-        self.r_bar_t = tf.layers.dense(x, 1, activation=None)[:, 0]
+        self.r_bar_t = tf.layers.dense(x, 1, activation=tf.nn.sigmoid)[:, 0]
 
         # loss
         if self.entropy:
