@@ -61,8 +61,9 @@ def main(args):
     })
 
     # plot losses and latent space
-    print("plotting losses")
-    viz_utils.plot_losses(losses)
+    if args.plot_losses:
+        print("plotting losses")
+        viz_utils.plot_losses(losses)
 
     if args.plot_latent_space:
         print("plotting latent space")
@@ -84,6 +85,7 @@ if __name__ == "__main__":
     parser.add_argument("--plot-exp", default=False, action="store_true", help="plot collected experience")
     parser.add_argument("--plot-latent-space", default=False, action="store_true", help="only works up to 3D")
     parser.add_argument("--plot-latent-space-every-step", default=False, action="store_true")
+    parser.add_argument("--plot-losses", default=False, action="store_true")
 
     parser.add_argument("--z-hiddens", type=int, nargs="+", default=[20, 20], help="hidden layers for the encoder")
     parser.add_argument("--t-hiddens", type=int, nargs="+", default=[], help="hidden layers for the transition model")
